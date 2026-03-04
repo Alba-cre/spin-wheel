@@ -24,9 +24,10 @@
         /* 分类按钮 */
         .category-bar button {
             margin: 6px;
-            padding: 8px 18px;
+            padding: 12px 26px;
+            font-size: 18px;
             border: none;
-            border-radius: 20px;
+            border-radius: 30px;
             background: #fff;
             cursor: pointer;
             transition: .3s;
@@ -49,11 +50,11 @@
         .main-btn {
             margin: 15px;
             padding: 12px 30px;
+            font-size: 16px;
             border: none;
             border-radius: 30px;
             background: #ff9ecf;
             color: white;
-            font-size: 16px;
             cursor: pointer;
         }
 
@@ -128,6 +129,10 @@
     <!-- 编辑抽屉 -->
     <div id="editorPanel">
         <div class="closeBtn" onclick="toggleEditor()">✖</div>
+        <h3>修改标题</h3>
+        <input id="titleInput" style="width:100%;padding:8px;font-size:16px;">
+        <br><br>
+
         <h3>编辑当前分类</h3>
         <textarea id="taskEditor"></textarea>
         <br><br>
@@ -140,7 +145,7 @@
 
         // 数据
         let defaultData = {
-            "运动养生": ["瑜伽", "跑步", "散步", "拉伸", "冥想", "跳绳"],
+            "运动与养生": ["瑜伽", "跑步", "散步", "拉伸", "冥想", "跳绳"],
             "居家生活": ["整理房间", "做饭", "插花", "收纳衣柜", "换床单"],
             "创意娱乐": ["画画", "写日记", "拼图", "DIY", "拍照"],
             "学习成长": ["读书", "练字", "背单词", "写总结"],
@@ -239,6 +244,7 @@
         // 渲染编辑面板
         function renderEditor() {
             document.getElementById("taskEditor").value = data[currentCategory].join("\n");
+            document.getElementById("titleInput").value = document.getElementById("title").innerText;
         }
         renderEditor();
 
@@ -254,22 +260,27 @@
                 return;
             }
 
+            // 保存标题
+            const newTitle = document.getElementById("titleInput").value.trim();
+            if (newTitle) {
+                document.getElementById("title").innerText = newTitle;
+                document.title = newTitle;
+                localStorage.setItem("wheelTitle", newTitle);
+            }
+
             data[currentCategory] = lines;
             localStorage.setItem("wheelData", JSON.stringify(data));
+
             drawWheel();
             alert("保存成功！");
         }
 
-        // 修改标题
-        document.getElementById("title").onclick = function () {
-            const newTitle = prompt("请输入新的标题：");
-            if (newTitle) {
-                this.innerText = newTitle;
-                document.title = newTitle;
-            }
-        };
+        // 页面加载时读取标题
+        const savedTitle = localStorage.getItem("wheelTitle");
+        if (savedTitle) {
+            document.getElementById("title").innerText = savedTitle;
+        }
     </script>
 
 </body>
 </html>
-
