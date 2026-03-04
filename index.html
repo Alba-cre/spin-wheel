@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>📵 不玩手机可以做什么</title>
+
+    <style>
+        body {
+            margin: 0;
+            text-align: center;
+            font-family: "Microsoft YaHei";
+            background: linear-gradient(135deg, #ffd6ec, #d9ecff);
+        }
+
+        /* 标题 */
+        h1 {
+            margin: 20px 0;
+            color: #ff4fa3;
+        }
+
+        /* 分类按钮 */
+        .category-bar button {
+            margin: 6px;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 20px;
+            background: #fff;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        .category-bar button.active {
+            background: #ff9ecf;
+            color: white;
+        }
+
+        /* 指针 */
+        .pointer {
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 30px solid #ff4fa3;
+            margin: 10px auto -8px auto;
+        }
+
+        /* 转盘 */
+        canvas {
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            transition: transform 0.8s linear;
+        }
+
+        /* 主按钮 */
+        .main-btn {
+            margin: 15px;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            background: #ff9ecf;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #ff4fa3;
+        }
+
+        /* 设置按钮 */
+        .settings {
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        /* 编辑抽屉 */
+        #editorPanel {
+            position: fixed;
+            right: -350px;
+            top: 0;
+            width: 320px;
+            height: 100%;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: .4s;
+            text-align: left;
+        }
+
+        #editorPanel.open {
+            right: 0;
+        }
+
+        #editorPanel textarea {
+            width: 100%;
+            height: 220px;
+        }
+
+        .closeBtn {
+            text-align: right;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="settings" onclick="toggleEditor()">⚙️</div>
+
+    <h1>📵 不玩手机可以做什么</h1>
+
+    <div class="category-bar" id="categories"></div>
+
+    <div class="pointer"></div>
+    <canvas id="wheel" width="360" height="360"></canvas>
+    <br>
+    <button class="main-btn" onclick="spin()">抽一个 ✨</button>
+
+    <div id="result"></div>
+
+    <div id="editorPanel">
+        <div class="closeBtn" onclick="toggleEditor()">✖</div>
+        <h3>编辑当前分类</h3>
+        <textarea id="taskEditor"></textarea>
+        <br><br>
+        <button onclick="saveEdit()">保存</button>
+    </div>
+
+    <script>
+
+        /* ========= 数据 ========= */
+
+        let defaultData = {
+            "运动": ["瑜伽", "跑步", "散步", "拉伸"],
+            "生活": ["整理房间", "做饭", "插花", "收纳"],
+            "娱乐": ["画画", "写日记", "拼图", "DIY"],
+            "学习": ["读书", "练字", "背单词"]
+        };
+
+        let data = JSON.parse(localStorage.getItem("wheelData")) || defaultData;
+        let currentCategory = Object.keys(data)[0];
+
+        /* ========= 分类 ========= */
+
+        function renderCategories() {
+            const box = document.getElementById("categories");
+            box.innerHTML = "";
+            Object.keys(data).forEach(cat => {
+                const btn = document.createElement("button");
+                btn.innerText = cat;
+                if (cat === currentCategory) btn.classList.add("active");
+                btn.onclick = () => {
+                    currentCategory = cat;
+                    renderCategories();
+                    renderEditor();
+                    drawWheel(-1);
+                };
+                box.appendChild(btn);
+            });
+        }
+        renderCategories();
+
+        /* ========= 转盘 ========= */
+
+        const canvas = document.getElementById("wheel");
+        const ctx = canvas.getContext("2d");
+        const radius = canvas.width / 2;
+
+        let spinning = false;
+
+        /* 绘制转盘 */
+        function drawWheel(highlightIndex) {
+
+            const tasks = data[currentCategory];
+            const count = tasks.length;
+            const angle = 2 * Math.PI / count;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < count; i++) {
+
+                ctx.beginPath();
+                ctx.moveTo(radius, radius);
+                ctx.arc(radius, radius, radius, i * angle, (i + 1) * angle);
+
+                if (i === highlightIndex) {
+                    ctx.fillStyle = "#ff4fa3";
+                } else {
+                    ctx.fillStyle = `hsl(${i * 360 / count},70%,80%)`;
+                }
+
+                ctx.fill();
+
+                ctx.save();
+                ctx.translate(radius, radius);
+                ctx.rotate(i * angle + angle / 2);
+                ctx.fillStyle = "#333";
+                ctx.font = "14px Microsoft YaHei";
+                ctx.textAlign = "right";
+                ctx.fillText(tasks[i], radius - 15, 5);
+                ctx.restore();
+            }
+        }
+        drawWheel(-1);
+
+        /* ========= 精准旋转 ========= */
+
+        function spin() {
+            if (spinning) return;
+            spinning = true;
+
+            drawWheel(-1);
+
+            const tasks = data[currentCategory];
+            const count = tasks.length;
+            const anglePer = 360 / count;
+
+            const randomIndex = Math.floor(Math.random() * count);
+
+            const targetAngle = randomIndex * anglePer + anglePer / 2;
+
+            const finalRotation = 360 * 4 + (270 - targetAngle);
+
+            canvas.style.transform = `rotate(${finalRotation}deg)`;
+
+            setTimeout(() => {
+                document.getElementById("result").innerText =
+                    "💖 现在去：" + tasks[randomIndex];
+
+                drawWheel(randomIndex);
+
+                spinning = false;
+            }, 800);
+        }
+
+        /* ========= 编辑 ========= */
+
+        function toggleEditor() {
+            document.getElementById("editorPanel")
+                .classList.toggle("open");
+        }
+
+        function renderEditor() {
+            document.getElementById("taskEditor").value =
+                data[currentCategory].join("\n");
+        }
+        renderEditor();
+
+        function saveEdit() {
+            const lines = document.getElementById("taskEditor").value
+                .split("\n")
+                .map(x => x.trim())
+                .filter(x => x);
+
+            if (lines.length < 2) {
+                alert("至少要2个选项");
+                return;
+            }
+
+            data[currentCategory] = lines;
+            localStorage.setItem("wheelData", JSON.stringify(data));
+            drawWheel(-1);
+            alert("保存成功！");
+        }
+
+    </script>
+</body>
+
+</html>
