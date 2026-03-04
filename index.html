@@ -1,286 +1,323 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>周末可以做什么</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>周末可以做什么</title>
 
-    <style>
-        body {
-            margin: 0;
-            text-align: center;
-            font-family: "Microsoft YaHei";
-            background: linear-gradient(135deg, #ffd6ec, #d9ecff);
-        }
+<style>
+body{
+    margin:0;
+    text-align:center;
+    font-family:"Microsoft YaHei";
+    background:linear-gradient(135deg,#ffd6ec,#d9ecff);
+}
 
-        /* 标题 */
-        #title {
-            font-size: 36px;
-            margin: 20px 0;
-            cursor: pointer;
-            color: #ff4fa3;
-        }
+/* 标题 */
+#title{
+    font-size:36px;
+    margin:20px 0;
+    color:#ff4fa3;
+}
 
-        /* 分类按钮 */
-        .category-bar button {
-            margin: 6px;
-            padding: 12px 26px;
-            font-size: 18px;
-            border: none;
-            border-radius: 30px;
-            background: #fff;
-            cursor: pointer;
-            transition: .3s;
-        }
+/* 分类按钮 */
+.category-bar{
+    margin:20px;
+}
 
-        .category-bar button.active {
-            background: #ff9ecf;
-            color: white;
-        }
+.category-bar button{
+    margin:8px;
+    padding:8px 20px;   /* 比抽奖按钮小 */
+    font-size:16px;
+    border:none;
+    border-radius:25px;
+    background:#fff;
+    cursor:pointer;
+    transition:.3s;
+    white-space:nowrap;
+}
 
-        /* 转盘 */
-        canvas {
-            background: white;
-            border-radius: 50%;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-            transition: transform 2s cubic-bezier(.17, .67, .25, 1);
-        }
+.category-bar button.active{
+    background:#ff9ecf;
+    color:#fff;
+}
 
-        /* 按钮 */
-        .main-btn {
-            margin: 15px;
-            padding: 12px 30px;
-            font-size: 16px;
-            border: none;
-            border-radius: 30px;
-            background: #ff9ecf;
-            color: white;
-            cursor: pointer;
-        }
+/* 转盘 */
+canvas{
+    background:#fff;
+    border-radius:50%;
+    box-shadow:0 20px 50px rgba(0,0,0,0.15);
+    transition:transform 2s cubic-bezier(.17,.67,.25,1);
+}
 
-        /* 结果 */
-        #result {
-            font-size: 18px;
-            margin-top: 15px;
-            color: #ff2f7f;
-        }
+/* 抽奖按钮 */
+.main-btn{
+    margin:20px;
+    padding:12px 30px;
+    font-size:18px;
+    border:none;
+    border-radius:30px;
+    background:#ff9ecf;
+    color:#fff;
+    cursor:pointer;
+}
 
-        /* 设置按钮 */
-        .settings {
-            position: fixed;
-            right: 20px;
-            top: 20px;
-            font-size: 22px;
-            cursor: pointer;
-        }
+/* 结果 */
+#result{
+    font-size:18px;
+    margin-top:15px;
+    color:#ff2f7f;
+}
 
-        /* 编辑抽屉 */
-        #editorPanel {
-            position: fixed;
-            right: -350px;
-            top: 0;
-            width: 320px;
-            height: 100%;
-            background: white;
-            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            transition: .4s;
-            text-align: left;
-        }
+/* 设置按钮 */
+.settings{
+    position:fixed;
+    right:20px;
+    top:20px;
+    font-size:22px;
+    cursor:pointer;
+}
 
-        #editorPanel.open {
-            right: 0;
-        }
+/* 编辑面板 */
+#editorPanel{
+    position:fixed;
+    right:-360px;
+    top:0;
+    width:320px;
+    height:100%;
+    background:#fff;
+    box-shadow:-5px 0 20px rgba(0,0,0,0.1);
+    padding:20px;
+    transition:.4s;
+    text-align:left;
+    overflow:auto;
+}
 
-        #editorPanel textarea {
-            width: 100%;
-            height: 200px;
-        }
+#editorPanel.open{
+    right:0;
+}
 
-        .closeBtn {
-            text-align: right;
-            cursor: pointer;
-            font-size: 18px;
-        }
+#editorPanel textarea{
+    width:100%;
+    height:180px;
+}
 
-        /* 分类按钮 */
-        .category-bar {
-            margin: 20px;
-        }
-    </style>
+.closeBtn{
+    text-align:right;
+    cursor:pointer;
+}
+</style>
 </head>
 
 <body>
 
-    <div class="settings" onclick="toggleEditor()">⚙️</div>
+<div class="settings" onclick="toggleEditor()">⚙️</div>
 
-    <!-- 标题 -->
-    <h1 id="title">周末可以做什么</h1>
+<h1 id="title">周末可以做什么</h1>
 
-    <!-- 分类按钮 -->
-    <div class="category-bar" id="categories"></div>
+<div class="category-bar" id="categories"></div>
 
-    <canvas id="wheel" width="360" height="360"></canvas>
-    <br>
-    <button class="main-btn" onclick="spin()">抽一个 ✨</button>
+<canvas id="wheel" width="360" height="360"></canvas>
+<br>
+<button class="main-btn" onclick="spin()">抽一个 ✨</button>
 
-    <div id="result"></div>
+<div id="result"></div>
 
-    <!-- 编辑抽屉 -->
-    <div id="editorPanel">
-        <div class="closeBtn" onclick="toggleEditor()">✖</div>
-        <h3>修改标题</h3>
-        <input id="titleInput" style="width:100%;padding:8px;font-size:16px;">
-        <br><br>
+<!-- 设置面板 -->
+<div id="editorPanel">
+<div class="closeBtn" onclick="toggleEditor()">✖</div>
 
-        <h3>编辑当前分类</h3>
-        <textarea id="taskEditor"></textarea>
-        <br><br>
-        <button onclick="saveEdit()">保存</button>
-    </div>
+<h3>修改标题</h3>
+<input id="titleInput" style="width:100%;padding:8px;font-size:16px;">
+<br><br>
 
-    <script>
-        // 音效
-        const audio = new Audio('https://www.soundjay.com/button/beep-07.wav');
+<h3>修改分类名称（最多5字）</h3>
+<input id="categoryNameInput" maxlength="5"
+style="width:100%;padding:8px;font-size:16px;">
+<br><br>
 
-        // 数据
-        let defaultData = {
-            "运动与养生": ["瑜伽", "跑步", "散步", "拉伸", "冥想", "跳绳"],
-            "居家生活": ["整理房间", "做饭", "插花", "收纳衣柜", "换床单"],
-            "创意娱乐": ["画画", "写日记", "拼图", "DIY", "拍照"],
-            "学习成长": ["读书", "练字", "背单词", "写总结"],
-            "探索社交": ["Citywalk", "逛公园", "拜访朋友"]
-        };
+<h3>编辑当前分类内容</h3>
+<textarea id="taskEditor"></textarea>
+<br><br>
 
-        let data = JSON.parse(localStorage.getItem("wheelData")) || defaultData;
-        let currentCategory = Object.keys(data)[0];
+<button onclick="saveEdit()">保存</button>
+</div>
 
-        // 渲染分类按钮
-        function renderCategories() {
-            const box = document.getElementById("categories");
-            box.innerHTML = "";
-            Object.keys(data).forEach(cat => {
-                const btn = document.createElement("button");
-                btn.innerText = cat;
-                if (cat === currentCategory) btn.classList.add("active");
-                btn.onclick = () => {
-                    currentCategory = cat;
-                    renderCategories();
-                    renderEditor();
-                    drawWheel();
-                };
-                box.appendChild(btn);
-            });
+<script>
+
+/* 音效 */
+const audio=new Audio("https://www.soundjay.com/button/beep-07.wav");
+
+/* 默认数据 */
+let defaultData=[
+{
+    name:"运动",
+    items:["瑜伽","跑步","散步","拉伸","冥想","跳绳","八段锦","梳头一百下","泡脚"]
+},
+{
+    name:"生活",
+    items:["整理房间+听播客","尝试新菜谱","睡懒觉","种植花草","换床单","烘焙","发呆"]
+},
+{
+    name:"娱乐",
+    items:["画画","写日记","拼图","DIY","拍照","唱歌","学乐器","下围棋","看电影纪录片综艺"]
+},
+{
+    name:"学习",
+    items:["读书","练字","背单词","写总结","Vibe Coding","练口语","随意写"]
+}
+];
+
+let data=JSON.parse(localStorage.getItem("wheelData"))||defaultData;
+let currentIndex=0;
+
+/* 读取保存标题 */
+const savedTitle=localStorage.getItem("wheelTitle");
+if(savedTitle){
+    document.getElementById("title").innerText=savedTitle;
+}
+
+/* 渲染分类按钮 */
+function renderCategories(){
+    const box=document.getElementById("categories");
+    box.innerHTML="";
+    data.forEach((cat,index)=>{
+        const btn=document.createElement("button");
+        btn.innerText=cat.name;
+        if(index===currentIndex){
+            btn.classList.add("active");
         }
-        renderCategories();
-
-        // 绘制转盘
-        const canvas = document.getElementById("wheel");
-        const ctx = canvas.getContext("2d");
-        const radius = canvas.width / 2;
-        let spinning = false;
-        let currentRotation = 0;
-
-        function drawWheel(highlightIndex = -1) {
-            const tasks = data[currentCategory];
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const count = tasks.length;
-            const angle = 2 * Math.PI / count;
-
-            for (let i = 0; i < count; i++) {
-                ctx.beginPath();
-                ctx.moveTo(radius, radius);
-                ctx.arc(radius, radius, radius, i * angle, (i + 1) * angle);
-
-                if (i === highlightIndex) {
-                    ctx.fillStyle = "#ff4fa3";
-                } else {
-                    ctx.fillStyle = `hsl(${i * 360 / count},70%,80%)`;
-                }
-
-                ctx.fill();
-
-                ctx.save();
-                ctx.translate(radius, radius);
-                ctx.rotate(i * angle + angle / 2);
-                ctx.fillStyle = "#333";
-                ctx.font = "16px Microsoft YaHei";
-                ctx.textAlign = "right";
-                ctx.fillText(tasks[i], radius - 15, 5);
-                ctx.restore();
-            }
-        }
-        drawWheel();
-
-        // 精准旋转
-        function spin() {
-            if (spinning) return;
-            spinning = true;
-            audio.play();  // 播放音效
-
-            const tasks = data[currentCategory];
-            const count = tasks.length;
-            const anglePer = 360 / count;
-
-            const randomIndex = Math.floor(Math.random() * count);
-            const targetAngle = randomIndex * anglePer + anglePer / 2;
-            const finalRotation = 360 * 4 + (270 - targetAngle);
-
-            canvas.style.transform = `rotate(${finalRotation}deg)`;
-
-            setTimeout(() => {
-                document.getElementById("result").innerText =
-                    "💖 现在去：" + tasks[randomIndex];
-                drawWheel(randomIndex);
-                spinning = false;
-            }, 2000);  // 2秒停止（更快）
-        }
-
-        // 编辑标题功能
-        function toggleEditor() {
-            document.getElementById("editorPanel").classList.toggle("open");
-        }
-
-        // 渲染编辑面板
-        function renderEditor() {
-            document.getElementById("taskEditor").value = data[currentCategory].join("\n");
-            document.getElementById("titleInput").value = document.getElementById("title").innerText;
-        }
-        renderEditor();
-
-        // 保存编辑
-        function saveEdit() {
-            const lines = document.getElementById("taskEditor").value
-                .split("\n")
-                .map(x => x.trim())
-                .filter(x => x);
-
-            if (lines.length < 2) {
-                alert("至少要2个选项");
-                return;
-            }
-
-            // 保存标题
-            const newTitle = document.getElementById("titleInput").value.trim();
-            if (newTitle) {
-                document.getElementById("title").innerText = newTitle;
-                document.title = newTitle;
-                localStorage.setItem("wheelTitle", newTitle);
-            }
-
-            data[currentCategory] = lines;
-            localStorage.setItem("wheelData", JSON.stringify(data));
-
+        btn.onclick=()=>{
+            currentIndex=index;
+            renderCategories();
+            renderEditor();
             drawWheel();
-            alert("保存成功！");
-        }
+        };
+        box.appendChild(btn);
+    });
+}
+renderCategories();
 
-        // 页面加载时读取标题
-        const savedTitle = localStorage.getItem("wheelTitle");
-        if (savedTitle) {
-            document.getElementById("title").innerText = savedTitle;
-        }
-    </script>
+/* 转盘绘制 */
+const canvas=document.getElementById("wheel");
+const ctx=canvas.getContext("2d");
+const radius=canvas.width/2;
+let spinning=false;
+
+function drawWheel(highlightIndex=-1){
+    const tasks=data[currentIndex].items;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const count=tasks.length;
+    const angle=2*Math.PI/count;
+
+    for(let i=0;i<count;i++){
+        ctx.beginPath();
+        ctx.moveTo(radius,radius);
+        ctx.arc(radius,radius,radius,i*angle,(i+1)*angle);
+
+        ctx.fillStyle=i===highlightIndex?"#ff4fa3":
+        `hsl(${i*360/count},70%,80%)`;
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(radius,radius);
+        ctx.rotate(i*angle+angle/2);
+        ctx.fillStyle="#333";
+        ctx.font="16px Microsoft YaHei";
+        ctx.textAlign="right";
+        ctx.fillText(tasks[i],radius-15,5);
+        ctx.restore();
+    }
+}
+drawWheel();
+
+/* 抽奖 */
+function spin(){
+    if(spinning)return;
+    spinning=true;
+    audio.play();
+
+    const tasks=data[currentIndex].items;
+    const count=tasks.length;
+    const anglePer=360/count;
+
+    const randomIndex=Math.floor(Math.random()*count);
+    const targetAngle=randomIndex*anglePer+anglePer/2;
+    const finalRotation=360*4+(270-targetAngle);
+
+    canvas.style.transform=`rotate(${finalRotation}deg)`;
+
+    setTimeout(()=>{
+        document.getElementById("result").innerText=
+        "💖 现在去："+tasks[randomIndex];
+        drawWheel(randomIndex);
+        spinning=false;
+    },2000);
+}
+
+/* 打开关闭设置 */
+function toggleEditor(){
+    document.getElementById("editorPanel")
+    .classList.toggle("open");
+    renderEditor();
+}
+
+/* 渲染编辑面板 */
+function renderEditor(){
+    document.getElementById("titleInput").value=
+    document.getElementById("title").innerText;
+
+    document.getElementById("categoryNameInput").value=
+    data[currentIndex].name;
+
+    document.getElementById("taskEditor").value=
+    data[currentIndex].items.join("\n");
+}
+
+/* 保存 */
+function saveEdit(){
+
+    const newTitle=
+    document.getElementById("titleInput").value.trim();
+    if(newTitle){
+        document.getElementById("title").innerText=newTitle;
+        document.title=newTitle;
+        localStorage.setItem("wheelTitle",newTitle);
+    }
+
+    const newCategoryName=
+    document.getElementById("categoryNameInput").value.trim();
+
+    if(newCategoryName.length===0||
+       newCategoryName.length>5){
+        alert("分类名称最多5个字");
+        return;
+    }
+
+    data[currentIndex].name=newCategoryName;
+
+    const lines=document.getElementById("taskEditor").value
+    .split("\n")
+    .map(x=>x.trim())
+    .filter(x=>x);
+
+    if(lines.length<2){
+        alert("至少要2个选项");
+        return;
+    }
+
+    data[currentIndex].items=lines;
+
+    localStorage.setItem("wheelData",
+    JSON.stringify(data));
+
+    renderCategories();
+    drawWheel();
+
+    alert("保存成功！");
+}
+
+</script>
 
 </body>
 </html>
